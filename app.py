@@ -60,8 +60,8 @@ def token_source() -> str:
 def settings() -> dict:
     return {
         "github_token": manual_token() or env_token(),
-        "repo_owner": store.get_setting("repo_owner", ""),
-        "repo_name": store.get_setting("repo_name", ""),
+        "repo_owner": store.get_setting("repo_owner"),
+        "repo_name": store.get_setting("repo_name"),
         "workflow_file": store.get_setting("workflow_file", "main.yml"),
         "workflow_ref": store.get_setting("workflow_ref", "main"),
         "poll_interval_sec": store.get_int("poll_interval_sec", 60),
@@ -69,7 +69,7 @@ def settings() -> dict:
         "keep_alive_cooldown_min": store.get_int("keep_alive_cooldown_min", 60),
         "auto_restart_enabled": store.get_bool("auto_restart_enabled"),
         "restart_before_min": store.get_int("restart_before_min", 330),
-        "timezone": store.get_setting("timezone", "Asia/Barnaul") or "Asia/Barnaul",
+        "timezone": store.get_setting("timezone"),
         "dashboard_user": os.environ.get("DASHBOARD_USER") or store.get_setting("dashboard_user", "admin"),
     }
 

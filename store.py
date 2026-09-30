@@ -82,7 +82,13 @@ class Store:
             default = DEFAULTS.get(key)
         with self._lock, self._conn() as c:
             row = c.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
-        return row["value"] if row else default
+        value = row["value"] if row else None
+        # A stored empty/whitespace-only string counts as "not set": fall back
+        # to the default instead of sticking forever (e.g. repo_name saved as ""
+        # by an older version would otherwise keep is_configured False forever).
+        if value is None or str(value).strip() == "":
+            return default
+        return value
 
     def set_setting(self, key: str, value) -> None:
         with self._lock, self._conn() as c:
@@ -93,7 +99,7 @@ class Store:
             )
 
     def get_bool(self, key: str) -> bool:
-        return str(self.get_setting(key, "0")) == "1"
+        return str(self.get_setting(key)) == "1"
 
     def get_int(self, key: str, default: int = 0) -> int:
         try:
