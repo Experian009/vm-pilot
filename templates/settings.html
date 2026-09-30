@@ -10,9 +10,9 @@
 <form method="post">
 <div class="card">
   <h3>GitHub</h3>
-  <p class="muted small">Нужен Personal Access Token с правами <b>Actions: Read and write</b> (или классический с <b>repo</b> + <b>workflow</b>). Токен можно задать и переменной окружения <code>GITHUB_TOKEN</code> — она приоритетнее.</p>
-  <label>Токен {% if token_from_env %}<span class="pill run">из ENV</span>{% endif %}
-    <input type="password" name="github_token" value="{{ '' if token_from_env else s.github_token }}" placeholder="ghp_..." {{ "disabled" if token_from_env }}></label>
+  <p class="muted small">Нужен Personal Access Token с правами <b>Actions: Read and write</b> (или классический с <b>repo</b> + <b>workflow</b>). Токен можно ввести здесь вручную — он приоритетнее. Если поле пустое, используется переменная окружения <code>GITHUB_TOKEN</code>.</p>
+  <label>Токен {% if token_source == "manual" %}<span class="pill run">вручную</span>{% elif token_source == "env" %}<span class="pill run">из ENV</span>{% endif %}
+    <input type="password" name="github_token" value="{{ s.github_token if token_source == 'manual' else '' }}" placeholder="ghp_..."></label>
   <label>Owner<input name="repo_owner" value="{{ s.repo_owner }}" placeholder="Experian009"></label>
   <label>Репозиторий с workflow виртуалки<input name="repo_name" value="{{ s.repo_name }}" placeholder="имя репозитория"></label>
   <label>Файл workflow<input name="workflow_file" value="{{ s.workflow_file }}"></label>

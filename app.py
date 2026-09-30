@@ -40,9 +40,26 @@ sched = BackgroundScheduler(timezone="UTC")
 
 
 # ------------------------------------------------------------------ helpers
+def env_token() -> str:
+    return (os.environ.get("GITHUB_TOKEN") or "").strip()
+
+
+def manual_token() -> str:
+    return (store.get_setting("github_token", "") or "").strip()
+
+
+def token_source() -> str:
+    """Where the effective GitHub token comes from: manual | env | none."""
+    if manual_token():
+        return "manual"
+    if env_token():
+        return "env"
+    return "none"
+
+
 def settings() -> dict:
     return {
-        "github_token": os.environ.get("GITHUB_TOKEN") or store.get_setting("github_token", ""),
+        "github_token": manual_token() or env_token(),
         "repo_owner": store.get_setting("repo_owner", ""),
         "repo_name": store.get_setting("repo_name", ""),
         "workflow_file": store.get_setting("workflow_file", "main.yml"),
@@ -407,7 +424,7 @@ def settings_page():
             conn_err = str(e)
     return render_template("settings.html", s=s, msg=msg, err=err,
                            conn=conn, conn_err=conn_err,
-                           token_from_env=bool(os.environ.get("GITHUB_TOKEN")))
+                           token_source=token_source())
 
 
 # ------------------------------------------------------------------ API
