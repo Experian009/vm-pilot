@@ -305,12 +305,14 @@ def runs():
     err = ""
     if client.configured:
         try:
-            items = client.list_runs(settings()["workflow_file"], per_page=30)
-            for r in items:
+            fresh = client.list_runs(settings()["workflow_file"], per_page=30)
+            for r in fresh:
                 store.upsert_run(r)
         except GitHubError as e:
             err = str(e)
-            items = store.get_runs(limit=30)
+        # Always render DB rows: raw API dicts lack computed columns
+        # (e.g. duration_sec) that the template expects.
+        items = store.get_runs(limit=30)
     else:
         items = store.get_runs(limit=30)
     return render_template("runs.html", runs=items, err=err, fmt_ts=fmt_ts,
