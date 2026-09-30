@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS schedules (
 
 DEFAULTS = {
     "repo_owner": "Experian009",
-    "repo_name": "",
+    "repo_name": "FreeVPS1",
     "workflow_file": "main.yml",
     "workflow_ref": "main",
     "poll_interval_sec": "60",
