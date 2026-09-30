@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Запуск {{ run_id }}{% endblock %}
+{% block content %}
+<h1>Запуск <span class="muted">#{{ run_id }}</span></h1>
+{% if stored %}
+<table class="kv">
+  <tr><td>Статус</td><td>{{ stored.status }} / {{ stored.conclusion or "—" }}</td></tr>
+  <tr><td>Старт</td><td>{{ fmt_ts(stored.started_at or stored.created_at) }}</td></tr>
+  <tr><td>Ветка</td><td>{{ stored.head_branch }} ({{ (stored.head_sha or "")[:7] }})</td></tr>
+</table>
+{% endif %}
+{% if err %}<div class="alert err">{{ err }}</div>{% endif %}
+
+{% if jobs %}
+<div class="btnrow">
+  {% for j in jobs %}
+  <a class="btn {{ 'primary' if j.id == active_job else '' }}"
+     href="{{ url_for('run_detail', run_id=run_id, job=j.id) }}">{{ j.name }}<br><span class="small">{{ j.status }}/{{ j.conclusion or "…" }}</span></a>
+  {% endfor %}
+</div>
+<h3>Лог {% if active_job %}<span class="muted small">job {{ active_job }}</span>{% endif %}</h3>
+<pre class="logs">{{ logs or "Лог пуст или недоступен." }}</pre>
+{% else %}
+<p class="muted">Нет данных о jobs. Возможно, GitHub не настроен или запуск ещё не начался.</p>
+{% endif %}
+<p><a href="{{ url_for('runs') }}">← Назад к истории</a></p>
+{% endblock %}

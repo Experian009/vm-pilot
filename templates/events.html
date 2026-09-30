@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}События{% endblock %}
+{% block content %}
+<h1>Журнал событий</h1>
+<p><a class="btn small danger" href="{{ url_for('events', clear=1) }}" onclick="return confirm('Очистить журнал?')">Очистить журнал</a></p>
+<table class="tbl">
+  <tr><th>Время</th><th>Тип</th><th>Сообщение</th></tr>
+  {% for e in events %}
+  <tr>
+    <td class="nowrap">{{ fmt_ts(e.ts) }}</td>
+    <td><span class="pill {{ 'run' if e.kind=='auto' else ('warn' if e.kind=='error' else 'stop') }}">{{ e.kind }}</span></td>
+    <td>{{ e.message }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">Событий пока нет.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

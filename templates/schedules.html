@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Расписание{% endblock %}
+{% block content %}
+<h1>Запуск по расписанию</h1>
+<p class="muted">Cron-формат: <code>минута час день месяц день_недели</code>. Примеры: <code>0 */6 * * *</code> — каждые 6 часов, <code>30 2 * * *</code> — ежедневно в 02:30, <code>0 9 * * 1</code> — по понедельникам в 09:00.</p>
+{% if msg %}<div class="alert ok">{{ msg }}</div>{% endif %}
+{% if err %}<div class="alert err">{{ err }}</div>{% endif %}
+
+<div class="card">
+  <h3>Новое расписание</h3>
+  <form method="post" class="formrow">
+    <label>Название<input name="label" placeholder="Например: рестарт каждые 6 часов" required></label>
+    <label>Cron<input name="cron" placeholder="0 */6 * * *" required></label>
+    <button class="btn primary" type="submit">Добавить</button>
+  </form>
+</div>
+
+<table class="tbl">
+  <tr><th>Название</th><th>Cron</th><th>Вкл</th><th>Последний запуск</th><th></th></tr>
+  {% for s in schedules %}
+  <tr>
+    <td>{{ s.label }}</td>
+    <td><code>{{ s.cron }}</code></td>
+    <td>{{ "✅" if s.enabled else "❌" }}</td>
+    <td>{{ s.last_run or "—" }}</td>
+    <td class="btnrow">
+      <form method="post" action="{{ url_for('schedule_toggle', sid=s.id) }}"><button class="btn small" type="submit">{{ "Выкл" if s.enabled else "Вкл" }}</button></form>
+      <form method="post" action="{{ url_for('schedule_delete', sid=s.id) }}" onsubmit="return confirm('Удалить расписание?')"><button class="btn small danger" type="submit">Удалить</button></form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">Расписаний пока нет.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

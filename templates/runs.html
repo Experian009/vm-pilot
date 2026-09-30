@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Запуски{% endblock %}
+{% block content %}
+<h1>История запусков</h1>
+{% if err %}<div class="alert err">{{ err }}<br><span class="muted small">Показаны сохранённые данные.</span></div>{% endif %}
+<table class="tbl">
+  <tr><th>#</th><th>Статус</th><th>Результат</th><th>Старт</th><th>Длительность</th><th></th></tr>
+  {% for r in runs %}
+  <tr>
+    <td><a href="{{ url_for('run_detail', run_id=r.id) }}">{{ r.run_number or r.id }}</a></td>
+    <td><span class="pill {{ 'run' if r.status in ('queued','in_progress') else 'stop' }}">{{ r.status }}</span></td>
+    <td>{{ r.conclusion or "—" }}</td>
+    <td>{{ fmt_ts(r.started_at or r.created_at) }}</td>
+    <td>{{ fmt_duration(r.duration_sec) }}</td>
+    <td><a href="{{ r.html_url }}" target="_blank">↗ GitHub</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">Пока нет данных. Настрой GitHub и нажми «Обновить» на дашборде.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

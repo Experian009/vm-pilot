@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VM Pilot — {% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav class="topnav">
+  <a class="brand" href="{{ url_for('dashboard') }}">🖥️ VM Pilot</a>
+  <a href="{{ url_for('dashboard') }}">Дашборд</a>
+  <a href="{{ url_for('runs') }}">Запуски</a>
+  <a href="{{ url_for('schedules') }}">Расписание</a>
+  <a href="{{ url_for('events') }}">События</a>
+  <a href="{{ url_for('settings_page') }}">Настройки</a>
+  <span class="spacer"></span>
+  {% if auth_on is defined and auth_on %}<a href="{{ url_for('logout') }}">Выйти</a>{% endif %}
+</nav>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

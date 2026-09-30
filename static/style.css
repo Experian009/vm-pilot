@@ -1,0 +1,62 @@
+:root {
+  --bg: #0f1420; --card: #182031; --line: #26314a;
+  --txt: #e8edf7; --muted: #8b96b3; --accent: #4f8cff;
+  --green: #34c77b; --red: #e5534b; --amber: #e0a63c;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--txt);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+.topnav { display: flex; gap: 4px; align-items: center; padding: 10px 16px;
+  background: #0b0f1a; border-bottom: 1px solid var(--line); position: sticky; top: 0; }
+.topnav a { color: var(--txt); text-decoration: none; padding: 8px 12px; border-radius: 8px; }
+.topnav a:hover { background: var(--card); }
+.topnav .brand { font-weight: 700; }
+.topnav .spacer { flex: 1; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+.wrap.narrow { max-width: 420px; }
+h1 { margin: 8px 0 18px; font-size: 26px; }
+h3 { margin: 0 0 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.nowrap { white-space: nowrap; }
+.pill { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+.pill.run { background: rgba(52,199,123,.15); color: var(--green); }
+.pill.stop { background: rgba(139,150,179,.15); color: var(--muted); }
+.pill.warn { background: rgba(224,166,60,.15); color: var(--amber); }
+.kv { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.kv td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.kv td:first-child { color: var(--muted); width: 55%; }
+.tbl { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+.tbl th, .tbl td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+.tbl th { color: var(--muted); font-weight: 600; font-size: 13px; }
+.btn { display: inline-block; background: #222c44; color: var(--txt); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 16px; cursor: pointer; text-decoration: none; font-size: 14px; }
+.btn:hover { background: #2a3654; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: #3d7bef; }
+.btn.danger { background: rgba(229,83,75,.15); border-color: var(--red); color: var(--red); }
+.btn.warnbtn { background: rgba(224,166,60,.15); border-color: var(--amber); color: var(--amber); }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; align-items: center; }
+.btnrow form { margin: 0; }
+.bar { height: 10px; background: #0b0f1a; border-radius: 6px; overflow: hidden; margin: 10px 0; }
+.bar .fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--amber)); transition: width .5s; }
+.alert { padding: 12px 16px; border-radius: 10px; margin: 12px 0; }
+.alert.ok { background: rgba(52,199,123,.12); border: 1px solid var(--green); }
+.alert.err { background: rgba(229,83,75,.12); border: 1px solid var(--red); }
+.alert.warn { background: rgba(224,166,60,.12); border: 1px solid var(--amber); }
+label { display: block; margin: 10px 0; font-size: 14px; }
+label.check { display: flex; gap: 8px; align-items: center; }
+input[type=text], input[type=password], input[type=number], input { width: 100%; padding: 10px 12px;
+  background: #0b0f1a; border: 1px solid var(--line); border-radius: 8px; color: var(--txt); margin-top: 4px; }
+input[type=checkbox] { width: auto; }
+.formrow { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.formrow label { flex: 1; min-width: 200px; }
+pre.logs { background: #0b0f1a; border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px; overflow: auto; max-height: 70vh; font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; }
+code { background: #0b0f1a; padding: 2px 6px; border-radius: 6px; font-size: 13px; }
+#uptime-chart { width: 100%; height: auto; }
+#action-msg { min-height: 20px; margin-top: 8px; }

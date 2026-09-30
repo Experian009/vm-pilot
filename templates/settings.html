@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Настройки{% endblock %}
+{% block content %}
+<h1>Настройки</h1>
+{% if msg %}<div class="alert ok">{{ msg }}</div>{% endif %}
+{% if err %}<div class="alert err">{{ err }}</div>{% endif %}
+{% if conn %}<div class="alert ok">✅ Подключение OK: {{ conn.full_name }} (ветка {{ conn.default_branch }})</div>{% endif %}
+{% if conn_err %}<div class="alert err">{{ conn_err }}</div>{% endif %}
+
+<form method="post">
+<div class="card">
+  <h3>GitHub</h3>
+  <p class="muted small">Нужен Personal Access Token с правами <b>Actions: Read and write</b> (или классический с <b>repo</b> + <b>workflow</b>). Токен можно задать и переменной окружения <code>GITHUB_TOKEN</code> — она приоритетнее.</p>
+  <label>Токен {% if token_from_env %}<span class="pill run">из ENV</span>{% endif %}
+    <input type="password" name="github_token" value="{{ '' if token_from_env else s.github_token }}" placeholder="ghp_..." {{ "disabled" if token_from_env }}></label>
+  <label>Owner<input name="repo_owner" value="{{ s.repo_owner }}" placeholder="Experian009"></label>
+  <label>Репозиторий с workflow виртуалки<input name="repo_name" value="{{ s.repo_name }}" placeholder="имя репозитория"></label>
+  <label>Файл workflow<input name="workflow_file" value="{{ s.workflow_file }}"></label>
+  <label>Ветка для запуска<input name="workflow_ref" value="{{ s.workflow_ref }}"></label>
+  <p><a class="btn" href="{{ url_for('settings_page', test=1) }}">Проверить подключение</a></p>
+</div>
+
+<div class="card">
+  <h3>Автопилот</h3>
+  <label class="check"><input type="checkbox" name="keep_alive_enabled" {{ "checked" if s.keep_alive_enabled }}> Keep-alive: поднимать виртуалку, если она упала</label>
+  <label>Пауза после ручной остановки (мин)<input type="number" name="keep_alive_cooldown_min" value="{{ s.keep_alive_cooldown_min }}" min="0"></label>
+  <label class="check"><input type="checkbox" name="auto_restart_enabled" {{ "checked" if s.auto_restart_enabled }}> Превентивный рестарт до 6-часового лимита GitHub</label>
+  <label>Рестартовать при возрасте запуска (мин)<input type="number" name="restart_before_min" value="{{ s.restart_before_min }}" min="60" max="355"></label>
+  <label>Интервал опроса GitHub (сек)<input type="number" name="poll_interval_sec" value="{{ s.poll_interval_sec }}" min="30"></label>
+</div>
+
+<div class="card">
+  <h3>Интерфейс</h3>
+  <label>Часовой пояс<input name="timezone" value="{{ s.timezone }}" placeholder="Asia/Barnaul"></label>
+  <label>Новый пароль дашборда (пусто — не менять)<input type="password" name="dashboard_password" placeholder="оставь пустым"></label>
+  <p class="muted small">Пароль также можно задать переменной <code>DASHBOARD_PASSWORD</code>. Без пароля дашборд открыт всем.</p>
+</div>
+
+<button class="btn primary" type="submit">Сохранить</button>
+</form>
+{% endblock %}

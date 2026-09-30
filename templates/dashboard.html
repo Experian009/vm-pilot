@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Дашборд{% endblock %}
+{% block content %}
+<h1>Дашборд</h1>
+
+{% if not p.configured %}
+<div class="alert warn">⚠️ GitHub не настроен. Открой <a href="{{ url_for('settings_page') }}">Настройки</a> и введи токен, owner и имя репозитория.</div>
+{% endif %}
+
+<div class="grid">
+  <div class="card" id="status-card">
+    <h3>Статус виртуалки</h3>
+    <div id="vm-status">
+      {% if p.active %}
+        <div class="pill run">● РАБОТАЕТ</div>
+        <table class="kv">
+          <tr><td>Запуск</td><td>#{{ p.run.number }} <a href="{{ p.run.url }}" target="_blank">↗</a></td></tr>
+          <tr><td>Старт</td><td>{{ p.run.started }}</td></tr>
+          <tr><td>Работает</td><td>{{ p.run.elapsed }}</td></tr>
+          <tr><td>Осталось до лимита 6ч</td><td>{{ p.run.left_min }} мин</td></tr>
+        </table>
+        <div class="bar"><div class="fill" style="width:{{ p.run.pct }}%"></div></div>
+      {% else %}
+        <div class="pill stop">○ ОСТАНОВЛЕНА</div>
+        <p class="muted">Активных запусков workflow нет.</p>
+      {% endif %}
+    </div>
+    <div class="btnrow">
+      <button class="btn primary" onclick="vmAction('start')">▶ Запустить</button>
+      <button class="btn warnbtn" onclick="vmAction('restart')">↻ Рестарт</button>
+      <button class="btn danger" onclick="vmAction('stop')">⏹ Остановить</button>
+      <button class="btn" onclick="vmAction('poll')">⟳ Обновить</button>
+    </div>
+    <div id="action-msg" class="muted"></div>
+  </div>
+
+  <div class="card">
+    <h3>Автопилот</h3>
+    <table class="kv">
+      <tr><td>Keep-alive</td><td>{{ "вкл ✅" if p.keep_alive else "выкл" }}</td></tr>
+      <tr><td>Превентивный рестарт</td><td>{{ "вкл ✅" if p.auto_restart else "выкл" }}</td></tr>
+      <tr><td>Активных расписаний</td><td>{{ p.schedules }}</td></tr>
+    </table>
+    <p class="muted small">Keep-alive поднимает виртуалку, если она упала. Превентивный рестарт пересоздаёт запуск до 6-часового лимита GitHub — без простоя.</p>
+    <a class="btn" href="{{ url_for('settings_page') }}">Настроить</a>
+  </div>
+
+  <div class="card">
+    <h3>Аптайм</h3>
+    <table class="kv">
+      <tr><td>Всего запусков</td><td>{{ stats.total_runs }}</td></tr>
+      <tr><td>Завершено</td><td>{{ stats.finished_runs }}</td></tr>
+      <tr><td>Суммарный аптайм</td><td>{{ fmt_duration(stats.total_uptime_sec) }}</td></tr>
+      {% for c, n in stats.by_conclusion.items() %}
+      <tr><td>{{ c }}</td><td>{{ n }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Аптайм по дням (последние 14 дней)</h3>
+  <canvas id="uptime-chart" width="900" height="180"
+    data-chart='{{ chart|tojson }}'></canvas>
+</div>
+{% endblock %}
