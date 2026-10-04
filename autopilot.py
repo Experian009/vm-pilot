@@ -58,17 +58,25 @@ def should_pre_restart(run: dict | None, enabled: bool, restart_before_min: int,
 def should_keep_alive(active_run: dict | None, enabled: bool,
                       last_manual_stop: datetime | None,
                       cooldown_min: int,
-                      now: datetime | None = None) -> tuple[bool, str]:
+                      now: datetime | None = None,
+                      last_dispatch: datetime | None = None) -> tuple[bool, str]:
     """Start the VM when nothing is running (keep-alive mode).
 
     Respects a cooldown after a *manual* stop so the autopilot does not
-    immediately undo what the user just did.
+    immediately undo what the user just did, and a short grace period after
+    any dispatch so a lagging GitHub API (new run not visible yet) or a
+    transient empty API response does not cause a duplicate VM.
     """
     now = now or datetime.now(timezone.utc)
     if not enabled:
         return False, ""
     if is_active(active_run):
         return False, ""
+    if last_dispatch:
+        since_dispatch = (now - last_dispatch).total_seconds() / 60.0
+        if since_dispatch < 5:
+            return False, (f"недавний запуск ({since_dispatch:.1f} мин назад), "
+                           "жду появления в API")
     if last_manual_stop:
         since_stop = (now - last_manual_stop).total_seconds() / 60.0
         if since_stop < cooldown_min:

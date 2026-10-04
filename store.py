@@ -170,11 +170,17 @@ class Store:
         return dict(row) if row else None
 
     # -- events --------------------------------------------------------
-    def add_event(self, kind: str, message: str) -> None:
+    def add_event(self, kind: str, message: str, keep: int = 1000) -> None:
         with self._lock, self._conn() as c:
             c.execute(
                 "INSERT INTO events(ts, kind, message) VALUES(?,?,?)",
                 (utcnow_iso(), kind, message),
+            )
+            # keep the table bounded: drop everything beyond the newest `keep`
+            c.execute(
+                "DELETE FROM events WHERE id NOT IN "
+                "(SELECT id FROM events ORDER BY id DESC LIMIT ?)",
+                (keep,),
             )
 
     def get_events(self, limit: int = 200) -> list[dict]:

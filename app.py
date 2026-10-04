@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import threading
 from datetime import datetime, timezone
 from functools import wraps
 from zoneinfo import ZoneInfo
@@ -153,8 +154,9 @@ def do_dispatch(source: str) -> tuple[bool, str]:
         return False, "GitHub не настроен — заполни токен и репозиторий в Настройках"
     try:
         client.dispatch(s["workflow_file"], ref=s["workflow_ref"])
+        store.set_setting("last_dispatch", utcnow_iso())
         store.add_event("action", f"[{source}] Запущена виртуалка (workflow_dispatch → {s['workflow_ref']})")
-        poll_github()  # refresh state immediately
+        poll_github(run_autopilot=False)  # refresh state immediately
         return True, "Команда запуска отправлена"
     except GitHubError as e:
         store.add_event("error", f"[{source}] Ошибка запуска: {e}")
@@ -169,7 +171,7 @@ def do_cancel(run_id: int, source: str) -> tuple[bool, str]:
         client.cancel_run(run_id)
         store.set_setting("last_manual_stop", utcnow_iso())
         store.add_event("action", f"[{source}] Остановлена виртуалка (run {run_id})")
-        poll_github()
+        poll_github(run_autopilot=False)
         return True, "Команда остановки отправлена"
     except GitHubError as e:
         store.add_event("error", f"[{source}] Ошибка остановки: {e}")
@@ -187,13 +189,32 @@ def do_restart(source: str) -> tuple[bool, str]:
             store.add_event("action", f"[{source}] Старый запуск {active['id']} отменён (рестарт)")
         except GitHubError as e:
             store.add_event("error", f"[{source}] Не удалось отменить старый запуск: {e}")
-    poll_github()
+    poll_github(run_autopilot=False)
     return True, "Рестарт: новый запуск создан, старый остановлен"
 
 
 # ------------------------------------------------------------------ poll job
-def poll_github():
-    """Sync workflow runs from GitHub; detect transitions; run autopilot."""
+_poll_lock = threading.Lock()
+
+
+def poll_github(run_autopilot: bool = True):
+    """Sync workflow runs from GitHub; detect transitions; run autopilot.
+
+    Guarded against re-entrant and concurrent runs. The refresh polls inside
+    do_dispatch()/do_cancel()/do_restart() must pass run_autopilot=False:
+    they only sync state, otherwise the autopilot would decide on stale data
+    (old run still looks active, new one not visible yet) and dispatch
+    duplicate VMs.
+    """
+    if not _poll_lock.acquire(blocking=False):
+        return
+    try:
+        _poll_github_impl(run_autopilot)
+    finally:
+        _poll_lock.release()
+
+
+def _poll_github_impl(run_autopilot: bool = True):
     s = settings()
     client = gh()
     if not client.configured:
@@ -221,6 +242,9 @@ def poll_github():
             else:
                 store.add_event("auto", f"Запуск #{r.get('run_number')}: {prev.get('status')} → {r.get('status')}")
 
+    if not run_autopilot:
+        return
+
     # autopilot: seamless restart before the 6h timeout
     active = store.get_active_run()
     now = datetime.now(timezone.utc)
@@ -233,8 +257,10 @@ def poll_github():
 
     # autopilot: keep-alive
     last_stop = parse_ts(store.get_setting("last_manual_stop"))
+    last_dispatch = parse_ts(store.get_setting("last_dispatch"))
     keep, reason = should_keep_alive(
-        active, s["keep_alive_enabled"], last_stop, s["keep_alive_cooldown_min"], now)
+        active, s["keep_alive_enabled"], last_stop, s["keep_alive_cooldown_min"],
+        now, last_dispatch)
     if keep:
         store.add_event("auto", f"Автопилот: keep-alive — {reason}")
         do_dispatch("autopilot/keep-alive")
@@ -274,7 +300,12 @@ def login():
         if (request.form.get("username") == settings()["dashboard_user"]
                 and check_password(request.form.get("password", ""))):
             session["logged_in"] = True
-            return redirect(request.args.get("next") or url_for("dashboard"))
+            next_url = request.args.get("next")
+            # open-redirect protection: only same-site relative paths allowed
+            if (not next_url or not next_url.startswith("/")
+                    or next_url.startswith("//") or "\\" in next_url):
+                next_url = url_for("dashboard")
+            return redirect(next_url)
         err = "Неверный логин или пароль"
     return render_template("login.html", err=err)
 
