@@ -1,0 +1,31 @@
+# Render Blueprint for VM Pilot (free tier, no card required).
+# Deploy: dashboard.render.com → New → Blueprint → connect Experian009/vm-pilot repo.
+# After deploy, set the `sync: false` variables in the Render dashboard
+# (Environment tab): GITHUB_TOKEN, DASHBOARD_PASSWORD.
+services:
+  - type: web
+    name: vm-pilot
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GITHUB_TOKEN
+        sync: false # fine-grained PAT: repo FreeVPS1, Actions read+write, Contents read
+      - key: DASHBOARD_USER
+        value: admin
+      - key: DASHBOARD_PASSWORD
+        sync: false # set a strong password in the dashboard
+      - key: VM_PILOT_REPO_OWNER
+        value: Experian009
+      - key: VM_PILOT_REPO_NAME
+        value: FreeVPS1
+      - key: VM_PILOT_WORKFLOW_FILE
+        value: main.yml
+      - key: VM_PILOT_WORKFLOW_REF
+        value: main
+      - key: VM_PILOT_TIMEZONE
+        value: Asia/Barnaul

@@ -1,0 +1,7 @@
+# Deplexo deployment descriptor.
+# Dashboard: deplexo.com → Add → import Experian009/vm-pilot → Dockerfile method.
+# The app listens on 0.0.0.0:${PORT:-5000}; keep `port` in sync with the
+# Dockerfile's default PORT.
+framework: dockerfile
+dockerfile: Dockerfile
+port: 5000

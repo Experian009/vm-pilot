@@ -59,18 +59,21 @@ def token_source() -> str:
 
 
 def settings() -> dict:
+    # Env vars (VM_PILOT_*) override DB settings: on hosts with ephemeral disks
+    # (e.g. Render free) the SQLite DB resets on restart, so critical config
+    # should come from the environment. DB/settings-page values remain as fallback.
     return {
         "github_token": manual_token() or env_token(),
-        "repo_owner": store.get_setting("repo_owner"),
-        "repo_name": store.get_setting("repo_name"),
-        "workflow_file": store.get_setting("workflow_file", "main.yml"),
-        "workflow_ref": store.get_setting("workflow_ref", "main"),
+        "repo_owner": os.environ.get("VM_PILOT_REPO_OWNER") or store.get_setting("repo_owner"),
+        "repo_name": os.environ.get("VM_PILOT_REPO_NAME") or store.get_setting("repo_name"),
+        "workflow_file": os.environ.get("VM_PILOT_WORKFLOW_FILE") or store.get_setting("workflow_file", "main.yml"),
+        "workflow_ref": os.environ.get("VM_PILOT_WORKFLOW_REF") or store.get_setting("workflow_ref", "main"),
         "poll_interval_sec": store.get_int("poll_interval_sec", 60),
         "keep_alive_enabled": store.get_bool("keep_alive_enabled"),
         "keep_alive_cooldown_min": store.get_int("keep_alive_cooldown_min", 60),
         "auto_restart_enabled": store.get_bool("auto_restart_enabled"),
         "restart_before_min": store.get_int("restart_before_min", 330),
-        "timezone": store.get_setting("timezone"),
+        "timezone": os.environ.get("VM_PILOT_TIMEZONE") or store.get_setting("timezone"),
         "dashboard_user": os.environ.get("DASHBOARD_USER") or store.get_setting("dashboard_user", "admin"),
     }
 
@@ -314,6 +317,12 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
+
+@app.route("/healthz")
+def healthz():
+    # Liveness probe for PaaS health checks / uptime pingers. No auth on purpose.
+    return {"ok": True}, 200
 
 
 @app.route("/")
