@@ -6,6 +6,9 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && chown -R app:app /app
 COPY --chown=app:app . .
 ENV PORT=5000
+# Deplexo runs containers with a read-only root FS: gunicorn's control server
+# wants $HOME/.gunicorn, so point HOME at the writable tmpfs.
+ENV HOME=/tmp
 EXPOSE 5000
 USER app
 # exec-form via sh: `exec` replaces the shell so gunicorn becomes PID 1 and
